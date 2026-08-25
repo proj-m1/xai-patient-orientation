@@ -1,0 +1,178 @@
+[
+  {
+    "nom": "C1 - Symptômes légers, durée courte, aucune alerte",
+    "faits": {
+      "age": "inconnu",
+      "temperature": "normale",
+      "duree_symptomes": "courte",
+      "douleur": "faible",
+      "difficulte_respiratoire": "non",
+      "douleur_thoracique": "non",
+      "perte_conscience": "non",
+      "saignement_important": "non",
+      "fatigue_importante": "non",
+      "symptomes_legers": "inconnu"
+    },
+    "decision_attendue": "SURVEILLANCE"
+  },
+  {
+    "nom": "C2 - Température élevée, durée longue",
+    "faits": {
+      "age": "inconnu",
+      "temperature": "elevee",
+      "duree_symptomes": "longue",
+      "douleur": "moyen",
+      "difficulte_respiratoire": "non",
+      "douleur_thoracique": "non",
+      "perte_conscience": "non",
+      "saignement_important": "non",
+      "fatigue_importante": "inconnu",
+      "symptomes_legers": "inconnu"
+    },
+    "decision_attendue": "CONSULTATION_PRIORITAIRE"
+  },
+  {
+    "nom": "C3 - Douleur thoracique et difficulté respiratoire",
+    "faits": {
+      "age": "inconnu",
+      "temperature": "normale",
+      "duree_symptomes": "courte",
+      "douleur": "inconnu",
+      "difficulte_respiratoire": "oui",
+      "douleur_thoracique": "oui",
+      "perte_conscience": "non",
+      "saignement_important": "non",
+      "fatigue_importante": "inconnu",
+      "symptomes_legers": "inconnu"
+    },
+    "decision_attendue": "ORIENTATION_URGENTE"
+  },
+  {
+    "nom": "C4 - Douleur moyenne, température normale",
+    "faits": {
+      "age": "inconnu",
+      "temperature": "normale",
+      "duree_symptomes": "courte",
+      "douleur": "moyen",
+      "difficulte_respiratoire": "non",
+      "douleur_thoracique": "non",
+      "perte_conscience": "non",
+      "saignement_important": "non",
+      "fatigue_importante": "inconnu",
+      "symptomes_legers": "inconnu"
+    },
+    "decision_attendue": "CONSULTATION_NORMALE"
+  },
+  {
+    "nom": "C5 - Fatigue importante, informations complètes",
+    "faits": {
+      "age": "inconnu",
+      "temperature": "normale",
+      "duree_symptomes": "courte",
+      "douleur": "moyen",
+      "difficulte_respiratoire": "non",
+      "douleur_thoracique": "non",
+      "perte_conscience": "non",
+      "saignement_important": "non",
+      "fatigue_importante": "oui",
+      "symptomes_legers": "inconnu"
+    },
+    "decision_attendue": "CONSULTATION_NORMALE"
+  },
+  {
+    "nom": "C6 - Perte de conscience",
+    "faits": {
+      "age": "inconnu",
+      "temperature": "normale",
+      "duree_symptomes": "courte",
+      "douleur": "inconnu",
+      "difficulte_respiratoire": "inconnu",
+      "douleur_thoracique": "inconnu",
+      "perte_conscience": "oui",
+      "saignement_important": "inconnu",
+      "fatigue_importante": "inconnu",
+      "symptomes_legers": "inconnu"
+    },
+    "decision_attendue": "ORIENTATION_URGENTE"
+  },
+  {
+    "nom": "C7 - Saignement important",
+    "faits": {
+      "age": "inconnu",
+      "temperature": "normale",
+      "duree_symptomes": "courte",
+      "douleur": "inconnu",
+      "difficulte_respiratoire": "inconnu",
+      "douleur_thoracique": "inconnu",
+      "perte_conscience": "inconnu",
+      "saignement_important": "oui",
+      "fatigue_importante": "inconnu",
+      "symptomes_legers": "inconnu"
+    },
+    "decision_attendue": "ORIENTATION_URGENTE"
+  },
+  {
+    "nom": "C8 - Température inconnue et durée inconnue",
+    "faits": {
+      "age": "inconnu",
+      "temperature": "inconnu",
+      "duree_symptomes": "inconnu",
+      "douleur": "inconnu",
+      "difficulte_respiratoire": "inconnu",
+      "douleur_thoracique": "inconnu",
+      "perte_conscience": "non",
+      "saignement_important": "inconnu",
+      "fatigue_importante": "inconnu",
+      "symptomes_legers": "inconnu"
+    },
+    "decision_attendue": "DEMANDER_PRECISIONS"
+  },
+  {
+    "nom": "C9 (limite) - Symptômes légers et perte de conscience",
+    "faits": {
+      "age": "inconnu",
+      "temperature": "normale",
+      "duree_symptomes": "courte",
+      "douleur": "inconnu",
+      "difficulte_respiratoire": "inconnu",
+      "douleur_thoracique": "inconnu",
+      "perte_conscience": "oui",
+      "saignement_important": "inconnu",
+      "fatigue_importante": "inconnu",
+      "symptomes_legers": "oui"
+    },
+    "decision_attendue": "ORIENTATION_URGENTE"
+  },
+  {
+    "nom": "C10 (limite) - Risque probabiliste élevé, aucune règle activée",
+    "faits": {
+      "age": "inconnu",
+      "temperature": "normale",
+      "duree_symptomes": "courte",
+      "douleur": "moyen",
+      "difficulte_respiratoire": "non",
+      "douleur_thoracique": "non",
+      "perte_conscience": "non",
+      "saignement_important": "non",
+      "fatigue_importante": "oui",
+      "symptomes_legers": "inconnu"
+    },
+    "decision_attendue": "CONSULTATION_PRIORITAIRE"
+  },
+  {
+    "nom": "C11 (limite) - Règle urgente active mais probabilité faible",
+    "faits": {
+      "age": "inconnu",
+      "temperature": "normale",
+      "duree_symptomes": "courte",
+      "douleur": "faible",
+      "difficulte_respiratoire": "inconnu",
+      "douleur_thoracique": "inconnu",
+      "perte_conscience": "oui",
+      "saignement_important": "inconnu",
+      "fatigue_importante": "inconnu",
+      "symptomes_legers": "inconnu"
+    },
+    "decision_attendue": "ORIENTATION_URGENTE"
+  }
+]
