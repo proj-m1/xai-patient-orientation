@@ -1,131 +1,126 @@
-# Système explicable d'orientation des patients
+# Mini-projet — Raisonnement en IA : Système d'orientation des patients
 
-Mini-projet — Raisonnement en Intelligence Artificielle (SDIA M1, 2026)
+Prototype de système d'aide à l'orientation de patients à raisonnement **explicite, vérifiable et évalué**. Le système ne pose pas de diagnostic médical : il classe une situation décrite par des faits dans une catégorie d'orientation, en justifiant chaque décision.
 
-## 1. Objectif
+Deux approches complémentaires sont implémentées et combinées :
 
-À partir d'informations sur un patient (âge, température, durée des
-symptômes, douleur, difficulté respiratoire, douleur thoracique, perte de
-conscience, saignement important, fatigue importante), le système propose
-une orientation parmi quatre catégories :
+| Méthode | Approche | Fichier | Rôle |
+|---|---|---|---|
+| 1 | Moteur à règles (symbolique) | `src/moteur_regles.py` | 2 — moteur symbolique |
+| 2 | Raisonnement probabiliste (score de risque sigmoïde) | `src/moteur_probabiliste.py` | 3 — incertitude/apprentissage |
+| 1+2 | Intégration hybride + table de fusion | `src/integration_hybride.py` | 4 — intégration/interface |
+| — | Formalisation & connaissances | `docs/formalisation_connaissances.md` | 1 — formalisation |
 
-1. Orientation urgente
-2. Consultation prioritaire
-3. Consultation normale
-4. Surveillance / demande d'informations supplémentaires
+---
 
-Chaque décision est accompagnée d'une explication : informations prises en
-compte, règles appliquées, niveau d'incertitude, informations manquantes,
-raison de la décision finale.
+## Démarrage rapide
 
-## 2. État d'avancement
+### 1. Dépendances
 
-| Approche | Statut |
-|---|---|
-| Méthode 1 — moteur à règles (symbolique) | ✅ Implémentée (`src/moteur_regles.py`) |
-| Méthode 2 — raisonnement probabiliste (réseau bayésien simplifié) | ⏳ À venir |
-| Fusion des deux méthodes (Configuration B) | ⏳ À venir |
-| Comparaison chiffrée des configurations A / B | ⏳ À venir (le script actuel calcule déjà exactitude, temps et échecs pour la configuration A seule) |
-
-## 3. Prérequis / dépendances
-
-- Python **3.10+** (utilisation de `list[tuple[...]]`, aucune dépendance
-  tierce nécessaire pour la méthode 1).
-- Aucune bibliothèque externe requise à ce stade (bibliothèque standard
-  uniquement : `json`, `argparse`, `time`, `dataclasses`, `pathlib`).
-
-Quand la méthode 2 (probabiliste) sera ajoutée, ce fichier et
-`requirements.txt` seront mis à jour si une dépendance externe devient
-nécessaire (ex. `pgmpy` pour un vrai réseau bayésien, sinon implémentation
-maison en Python pur).
-
-## 4. Structure du projet
-
-```
-projet/
-├── README.md
-├── requirements.txt
-├── data/
-│   └── cas_test.json      # 11 cas de test (dont 3 cas limites), séparés du code
-└── src/
-    └── moteur_regles.py   # Méthode 1 : moteur à règles + trace explicative
+```bash
+pip install -r requirements.txt
 ```
 
-## 5. Commande de lancement
-
-Depuis la racine du projet :
+### 2. Lancer le moteur à règles seul (Configuration A)
 
 ```bash
 python3 src/moteur_regles.py
 ```
 
-Options disponibles :
+### 3. Lancer la méthode probabiliste seule (méthode 2)
 
 ```bash
-# Utiliser un autre jeu de cas de test
-python3 src/moteur_regles.py --data data/cas_test.json
-
-# N'afficher que le bilan final (sans la trace détaillée de chaque cas)
-python3 src/moteur_regles.py --quiet
+python3 src/moteur_probabiliste.py
 ```
 
-## 6. Sortie produite
+### 4. Comparer les deux configurations (exigence du sujet)
 
-Pour chaque cas de test, le script affiche :
-
-- les faits reçus (entrées du patient) ;
-- chaque règle évaluée et son résultat (déclenchée / non déclenchée) ;
-- les contradictions détectées entre les faits, s'il y en a ;
-- les informations critiques manquantes, s'il y en a ;
-- le niveau de confiance ;
-- la décision finale ;
-- la justification en langage naturel.
-
-Puis un **bilan global** :
-
-- exactitude par rapport aux décisions attendues du jeu de test ;
-- temps de raisonnement total et moyen ;
-- liste des échecs (décision attendue vs obtenue) ;
-- liste des cas que le moteur à règles seul ne peut pas trancher finement
-  (et qui nécessitent donc la méthode 2, à venir).
-
-## 7. Jeu de données de test
-
-`data/cas_test.json` contient 11 cas (C1 à C11), dont 3 cas limites (C9,
-C10, C11), conformément à l'exigence du sujet (≥ 10 cas dont 3 limites).
-Chaque cas comprend :
-
-```json
-{
-  "nom": "C1 - Symptômes légers, durée courte, aucune alerte",
-  "faits": { "temperature": "normale", "douleur": "faible", "...": "..." },
-  "decision_attendue": "SURVEILLANCE"
-}
+```bash
+python3 src/integration_hybride.py
 ```
 
-Le champ `"inconnu"` signifie explicitement une information manquante
-(distincte de `"non"`).
+Affiche le tableau de comparaison Config A (règles seules) vs Config B (hybride) sur les 11 cas de test, avec exactitude, temps et liste des échecs.
 
-## 8. Limites connues (méthode 1 seule)
+### 5. Interface web (démo)
 
-- Les cas C4, C5 et C10 ne peuvent pas être tranchés finement par les
-  règles seules : elles retombent sur une orientation par défaut
-  (`CONSULTATION_NORMALE`) avec un niveau de confiance faible. Le cas C10
-  échoue explicitement au test (décision attendue :
-  `CONSULTATION_PRIORITAIRE`), ce qui illustre concrètement pourquoi la
-  méthode 2 (raisonnement probabiliste) est nécessaire en complément.
-- La règle **R5** (saignement important → orientation urgente) a été
-  ajoutée par l'équipe pour couvrir le cas C7 ; elle ne figure pas
-  explicitement dans l'énoncé du sujet et doit être justifiée dans le
-  rapport comme une connaissance choisie par le groupe.
-- Le système fournit une orientation explicable ; il ne remplace pas une
-  décision humaine (rappel de l'hypothèse du sujet).
+```bash
+python3 src/app.py
+```
 
-## 9. Contribution
+Puis ouvrir [http://127.0.0.1:5000](http://127.0.0.1:5000) dans un navigateur. L'interface (Vue.js via CDN) permet de saisir les observations d'un patient et d'afficher la décision finale, la confiance, la probabilité d'urgence, les règles évaluées, les contradictions et les informations manquantes.
 
-- **Rôle 2 (moteur symbolique)** : `src/moteur_regles.py` — base de règles,
-  détection de contradictions/informations manquantes, trace explicative.
+---
 
-*(Section à compléter par les autres membres du groupe au fur et à mesure
-de leur contribution : formalisation, méthode probabiliste, intégration,
-tests.)*
+## Structure du projet
+
+```
+projet_ia/
+├── src/
+│   ├── moteur_regles.py         # Méthode 1 : moteur à règles (rôle 2)
+│   ├── moteur_probabiliste.py   # Méthode 2 : raisonnement probabiliste (rôle 3)
+│   ├── integration_hybride.py   # Rôle 4 : table de fusion + comparaison
+│   └── app.py                   # Rôle 4 : API Flask + interface web
+├── templates/
+│   └── index.html               # Interface Vue.js (CDN)
+├── data/
+│   └── cas_test.json            # 11 cas de test (reproductibilité)
+├── docs/
+│   └── formalisation_connaissances.md   # Rôle 1 : formalisation
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## Jeu de test
+
+Le fichier `data/cas_test.json` contient 11 cas (dont 3 cas limites C9, C10, C11), externalisés du code pour la reproductibilité. Les cas couvrent :
+
+- les situations simples (C1–C7) ;
+- l'incomplétude (C8 : informations critiques manquantes) ;
+- les contradictions (C9 : symptômes légers + perte de conscience) ;
+- les cas ambigus que le moteur à règles seul ne tranche pas (C10) ;
+- le cas d'une règle urgente activée malgré une douleur déclarée faible et une probabilité modérée (C11) : la règle critique prime par sécurité, jamais annulée par le modèle probabiliste.
+
+---
+
+## Table de fusion (orientée sécurité)
+
+L'intégration (`integration_hybride.py`) applique une fusion déterministe dont le principe directeur est : *le coût d'un faux négatif urgent étant très élevé, la fusion privilégie toujours l'hypothèse la plus prudente*.
+
+1. **Contradiction non tranchée** → `SURVEILLANCE_MANUELLE_REQUISE` (vérification humaine).
+2. **Règle urgente déclenchée** → `ORIENTATION_URGENTE` conservée, même si la probabilité probabiliste est modérée (principe de sécurité : une règle critique n'est jamais annulée par le modèle). Cas C11.
+3. **Informations critiques manquantes, aucune règle urgente** → `DEMANDER_PRECISIONS` (le système ne devine pas).
+4. **Règle prioritaire (R3)** → conservée, sauf si P(urgence) ≥ 0.90 (probabilité très forte), auquel cas rehaussement en `ORIENTATION_URGENTE`.
+5. **Aucune règle décisive** → décision par le modèle probabiliste.
+6. Une **justification combinée** est toujours produite : « méthode 1 dit X parce que R… ; méthode 2 dit Y avec P=… ; fusion finale = … ».
+
+---
+
+## Résultats observés
+
+Sur les 11 cas :
+
+- **Config A (règles seules)** : 10/11 (90,9 %). Échec sur C10, cas ambigu que les règles ne couvrent pas et qui nécessite justement la méthode 2.
+- **Config B (hybride)** : 10/11 (90,9 %). Résout C10. Le seul échec est C5.
+
+### Limite connue : cas C5 / C10
+
+Les cas C5 et C10 ont des **entrées identiques** (fatigue importante + douleur moyenne + température normale + durée courte, aucun signe critique) mais des décisions attendues **différentes** dans le jeu de test (`CONSULTATION_NORMALE` pour C5, `CONSULTATION_PRIORITAIRE` pour C10). Aucun système déterministe ne peut satisfaire les deux attendus simultanément. Le modèle probabiliste, calibré pour traiter C10 (le cas qui justifie l'existence de la méthode 2), produit `CONSULTATION_PRIORITAIRE` pour cette entrée : C10 est donc résolu, au prix de C5. Cette contradiction inhérente au jeu de test est documentée comme limite dans le rapport.
+
+Temps de raisonnement : < 0,03 ms/cas pour la configuration hybride (compatible avec un usage interactif).
+
+---
+
+## Reproductibilité
+
+- Code Python 3 standard, dépendances réduites au minimum (Flask uniquement pour l'interface).
+- Cas de test externalisés dans `data/cas_test.json` (modifiables sans toucher au code).
+- Chaque méthode est exécutable seule via la ligne de commande, avec l'option `--data` pour pointer vers un autre jeu de cas.
+- Le script de comparaison produit un tableau reproductible des deux configurations.
+
+## Notes par rôle
+
+- **Rôle 1 (formalisation/connaissances)** : livré dans `docs/formalisation_connaissances.md` — problème, ontologie des variables, base de règles formalisée, coût des erreurs, critère d'acceptation, traçabilité formalisation↔code.
+- **Rôle 4 (intégration/interface)** : livré dans `src/integration_hybride.py` (table de fusion + comparaison Config A/B) et `src/app.py` + `templates/index.html` (interface web).
+- **Rôle 3 (probabiliste)** : `src/moteur_probabiliste.py` est une implémentation minimale fonctionnelle (scaffold), calibrée pour démontrer l'intégration ; le titulaire du rôle 3 peut remplacer les poids par des poids appris sans casser la fusion, tant que la fonction `evaluer_probabiliste(faits) -> ResultatProbabiliste` conserve sa signature.
