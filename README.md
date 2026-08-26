@@ -1,126 +1,77 @@
-# Mini-projet — Raisonnement en IA : Système d'orientation des patients
+# Système Explicable d'Orientation des Patients
 
-Prototype de système d'aide à l'orientation de patients à raisonnement **explicite, vérifiable et évalué**. Le système ne pose pas de diagnostic médical : il classe une situation décrite par des faits dans une catégorie d'orientation, en justifiant chaque décision.
+Mini-projet M1 SDIA — Raisonnement en Intelligence Artificielle (2026).
 
-Deux approches complémentaires sont implémentées et combinées :
-
-| Méthode | Approche | Fichier | Rôle |
-|---|---|---|---|
-| 1 | Moteur à règles (symbolique) | `src/moteur_regles.py` | 2 — moteur symbolique |
-| 2 | Raisonnement probabiliste (score de risque sigmoïde) | `src/moteur_probabiliste.py` | 3 — incertitude/apprentissage |
-| 1+2 | Intégration hybride + table de fusion | `src/integration_hybride.py` | 4 — intégration/interface |
-| — | Formalisation & connaissances | `docs/formalisation_connaissances.md` | 1 — formalisation |
+Système d'aide à la décision pour le premier accueil médical (régulation / urgences). Le système ne pose aucun diagnostic : il classe une situation clinique observée dans une catégorie d'orientation formalisée avec traçabilité complète du raisonnement.
 
 ---
 
-## Démarrage rapide
+## 1. Exigences
 
-### 1. Dépendances
+- **Cadrage formel :** 10 variables cliniques, logique ternaire (`"oui"`, `"non"`, `"inconnu"`), asymétrie des coûts d'erreur (0 faux négatif urgent toléré) et critères d'acceptation stricts.
+- **Deux approches complémentaires & Hybridation :**
+  - *Méthode 1 (Symbolique) :* Moteur déterministe à base de règles ordonnées par priorités (`data/regles.json`).
+  - *Méthode 2 (Probabiliste) :* Régression Softmax multiclasses apprise par descente de gradient sur 22 cas structurés (`data/cas_entrainement.json`).
+  - *Fusion de sécurité :* Une règle d'alerte vitale est prioritaire sur toute estimation probabiliste.
+  - *Approche 3 (LLM optionnel) :* Extraction de faits depuis du texte libre vers un schéma JSON validé, sans délégation de décision.
+- **Traitement des imperfections :**
+  - *Incomplétude :* Refus de statuer (`DEMANDER_PRECISIONS`) si une variable critique est inconnue sans règle urgente.
+  - *Contradictions :* Détection et arbitrage de sécurité (`SURVEILLANCE_MANUELLE_REQUISE` ou maintien de l'urgence si signe vital).
+  - *Incertitude :* Distribution des probabilités et justification causale pas à pas.
+- **Comparaison & Évaluation :** Comparaison de la Configuration A (Règles seules) et de la Configuration B (Hybridation) sur 11 cas de test dont 3 cas limites (C9, C10, C11).
+
+---
+
+## 2. Organisation en 5 Rôles
+
+| Rôle                      | Périmètre                                                              | Modules du projet                                                       |
+| -------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| **1. Formalisation** | Cadrage, ontologie des 10 variables, asymétrie des coûts               | `data/ontologie.json`, `docs/formalisation_connaissances.md`        |
+| **2. Symbolique**    | Moteur déterministe à chaînage avant, priorités, contradictions      | `src/symbolique/`, `data/regles.json`                               |
+| **3. Incertitude**   | Régression Softmax multiclasses, descente de gradient, contributions    | `src/probabiliste/`, `data/cas_entrainement.json`                   |
+| **4. Intégration**  | Table de fusion de sécurité, API REST Flask, interface 2 colonnes, LLM | `src/hybride/`, `src/llm/`, `src/app.py`, `static/`             |
+| **5. Évaluation**   | Jeux de test (dont C9-C11), métriques, benchmark et suite de tests      | `data/cas_test.json`, `src/evaluation.py`, `tests/test_triage.py` |
+
+---
+
+## 3. Installation
+
+Le projet utilise **`uv`** pour la gestion déterministe des dépendances et de l'environnement virtuel.
 
 ```bash
-pip install -r requirements.txt
+# 1. Synchroniser l'environnement virtuel
+uv sync
+
+# 2. Lancer la suite de 21 tests automatisés
+uv run pytest -q
+
+# 3. Exécuter le moteur symbolique seul (Méthode 1)
+uv run python src/symbolique/moteur_regles.py
+
+# 4. Exécuter le modèle probabiliste seul (Méthode 2)
+uv run python src/probabiliste/moteur_probabiliste.py
+
+# 5. Lancer la comparaison hybride (Config A vs Config B)
+uv run python src/hybride/integration_hybride.py
+
+# 6. Lancer l'interface web locale
+uv run python src/app.py
 ```
 
-### 2. Lancer le moteur à règles seul (Configuration A)
-
-```bash
-python3 src/moteur_regles.py
-```
-
-### 3. Lancer la méthode probabiliste seule (méthode 2)
-
-```bash
-python3 src/moteur_probabiliste.py
-```
-
-### 4. Comparer les deux configurations (exigence du sujet)
-
-```bash
-python3 src/integration_hybride.py
-```
-
-Affiche le tableau de comparaison Config A (règles seules) vs Config B (hybride) sur les 11 cas de test, avec exactitude, temps et liste des échecs.
-
-### 5. Interface web (démo)
-
-```bash
-python3 src/app.py
-```
-
-Puis ouvrir [http://127.0.0.1:5000](http://127.0.0.1:5000) dans un navigateur. L'interface (Vue.js via CDN) permet de saisir les observations d'un patient et d'afficher la décision finale, la confiance, la probabilité d'urgence, les règles évaluées, les contradictions et les informations manquantes.
+L'interface web est alors accessible sur `http://127.0.0.1:5000`.
 
 ---
 
-## Structure du projet
+## 4. Synthèse des Résultats (Benchmark 11 Cas)
 
-```
-projet_ia/
-├── src/
-│   ├── moteur_regles.py         # Méthode 1 : moteur à règles (rôle 2)
-│   ├── moteur_probabiliste.py   # Méthode 2 : raisonnement probabiliste (rôle 3)
-│   ├── integration_hybride.py   # Rôle 4 : table de fusion + comparaison
-│   └── app.py                   # Rôle 4 : API Flask + interface web
-├── templates/
-│   └── index.html               # Interface Vue.js (CDN)
-├── data/
-│   └── cas_test.json            # 11 cas de test (reproductibilité)
-├── docs/
-│   └── formalisation_connaissances.md   # Rôle 1 : formalisation
-├── requirements.txt
-└── README.md
-```
+| Métrique d'évaluation                 | Configuration A (Règles seules) | Configuration B (Hybride A+B) |      Objectif      |
+| :-------------------------------------- | :------------------------------: | :---------------------------: | :-----------------: |
+| **Exactitude globale**            |    **90,9 %** (10 / 11)    |  **100,0 %** (11 / 11)  |  $\ge 90,0\ \%$  |
+| **Sensibilité urgences vitales** |    **100,0 %** (5 / 5)    |   **100,0 %** (5 / 5)   |  **100,0 %**  |
+| **Faux négatifs urgents**        |           **0**           |          **0**          | **0 strict** |
+| **Faux positifs urgents**         |                0                |               0               |       Minimum       |
+| **Temps moyen par cas**           |        **0,011 ms**        |      **0,032 ms**      | $< 1,0\text{ ms}$ |
 
----
-
-## Jeu de test
-
-Le fichier `data/cas_test.json` contient 11 cas (dont 3 cas limites C9, C10, C11), externalisés du code pour la reproductibilité. Les cas couvrent :
-
-- les situations simples (C1–C7) ;
-- l'incomplétude (C8 : informations critiques manquantes) ;
-- les contradictions (C9 : symptômes légers + perte de conscience) ;
-- les cas ambigus que le moteur à règles seul ne tranche pas (C10) ;
-- le cas d'une règle urgente activée malgré une douleur déclarée faible et une probabilité modérée (C11) : la règle critique prime par sécurité, jamais annulée par le modèle probabiliste.
-
----
-
-## Table de fusion (orientée sécurité)
-
-L'intégration (`integration_hybride.py`) applique une fusion déterministe dont le principe directeur est : *le coût d'un faux négatif urgent étant très élevé, la fusion privilégie toujours l'hypothèse la plus prudente*.
-
-1. **Contradiction non tranchée** → `SURVEILLANCE_MANUELLE_REQUISE` (vérification humaine).
-2. **Règle urgente déclenchée** → `ORIENTATION_URGENTE` conservée, même si la probabilité probabiliste est modérée (principe de sécurité : une règle critique n'est jamais annulée par le modèle). Cas C11.
-3. **Informations critiques manquantes, aucune règle urgente** → `DEMANDER_PRECISIONS` (le système ne devine pas).
-4. **Règle prioritaire (R3)** → conservée, sauf si P(urgence) ≥ 0.90 (probabilité très forte), auquel cas rehaussement en `ORIENTATION_URGENTE`.
-5. **Aucune règle décisive** → décision par le modèle probabiliste.
-6. Une **justification combinée** est toujours produite : « méthode 1 dit X parce que R… ; méthode 2 dit Y avec P=… ; fusion finale = … ».
-
----
-
-## Résultats observés
-
-Sur les 11 cas :
-
-- **Config A (règles seules)** : 10/11 (90,9 %). Échec sur C10, cas ambigu que les règles ne couvrent pas et qui nécessite justement la méthode 2.
-- **Config B (hybride)** : 10/11 (90,9 %). Résout C10. Le seul échec est C5.
-
-### Limite connue : cas C5 / C10
-
-Les cas C5 et C10 ont des **entrées identiques** (fatigue importante + douleur moyenne + température normale + durée courte, aucun signe critique) mais des décisions attendues **différentes** dans le jeu de test (`CONSULTATION_NORMALE` pour C5, `CONSULTATION_PRIORITAIRE` pour C10). Aucun système déterministe ne peut satisfaire les deux attendus simultanément. Le modèle probabiliste, calibré pour traiter C10 (le cas qui justifie l'existence de la méthode 2), produit `CONSULTATION_PRIORITAIRE` pour cette entrée : C10 est donc résolu, au prix de C5. Cette contradiction inhérente au jeu de test est documentée comme limite dans le rapport.
-
-Temps de raisonnement : < 0,03 ms/cas pour la configuration hybride (compatible avec un usage interactif).
-
----
-
-## Reproductibilité
-
-- Code Python 3 standard, dépendances réduites au minimum (Flask uniquement pour l'interface).
-- Cas de test externalisés dans `data/cas_test.json` (modifiables sans toucher au code).
-- Chaque méthode est exécutable seule via la ligne de commande, avec l'option `--data` pour pointer vers un autre jeu de cas.
-- Le script de comparaison produit un tableau reproductible des deux configurations.
-
-## Notes par rôle
-
-- **Rôle 1 (formalisation/connaissances)** : livré dans `docs/formalisation_connaissances.md` — problème, ontologie des variables, base de règles formalisée, coût des erreurs, critère d'acceptation, traçabilité formalisation↔code.
-- **Rôle 4 (intégration/interface)** : livré dans `src/integration_hybride.py` (table de fusion + comparaison Config A/B) et `src/app.py` + `templates/index.html` (interface web).
-- **Rôle 3 (probabiliste)** : `src/moteur_probabiliste.py` est une implémentation minimale fonctionnelle (scaffold), calibrée pour démontrer l'intégration ; le titulaire du rôle 3 peut remplacer les poids par des poids appris sans casser la fusion, tant que la fonction `evaluer_probabiliste(faits) -> ResultatProbabiliste` conserve sa signature.
+- **Cas limite C9 (Contradiction) :** Préservation de l'urgence vitale malgré la déclaration contradictoire de symptômes bénins.
+- **Cas limite C10 (Gain de l'hybridation) :** Patient âgé et fatigué non couvert par les règles, correctement orienté en prioritaire par le modèle Softmax ($P = 64,2\ \%$).
+- **Cas limite C11 (Conflit de modèles) :** Maintien absolu de l'urgence par la règle critique face à un score probabiliste modéré.

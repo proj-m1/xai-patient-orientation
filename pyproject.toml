@@ -1,0 +1,19 @@
+[project]
+name = "explainable-patient-triage"
+version = "0.1.0"
+description = "Système d'aide à l'orientation de patients"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "flask>=3.0.0",
+    "python-docx>=1.2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

@@ -1,0 +1,12 @@
+{
+  "age": {"libelle": "Âge", "type": "entier", "valeurs": ["inconnu"], "critique": false},
+  "temperature": {"libelle": "Température", "type": "choix", "valeurs": ["inconnu", "normale", "elevee"], "critique": true},
+  "duree_symptomes": {"libelle": "Durée des symptômes", "type": "choix", "valeurs": ["inconnu", "courte", "longue"], "critique": true},
+  "douleur": {"libelle": "Douleur", "type": "choix", "valeurs": ["inconnu", "faible", "moyen", "fort"], "critique": false},
+  "difficulte_respiratoire": {"libelle": "Difficulté respiratoire", "type": "choix", "valeurs": ["inconnu", "non", "oui"], "critique": true},
+  "douleur_thoracique": {"libelle": "Douleur thoracique", "type": "choix", "valeurs": ["inconnu", "non", "oui"], "critique": true},
+  "perte_conscience": {"libelle": "Perte de conscience", "type": "choix", "valeurs": ["inconnu", "non", "oui"], "critique": true},
+  "saignement_important": {"libelle": "Saignement important", "type": "choix", "valeurs": ["inconnu", "non", "oui"], "critique": true},
+  "fatigue_importante": {"libelle": "Fatigue importante", "type": "choix", "valeurs": ["inconnu", "non", "oui"], "critique": false},
+  "symptomes_legers": {"libelle": "Symptômes légers déclarés", "type": "choix", "valeurs": ["inconnu", "non", "oui"], "critique": false}
+}
