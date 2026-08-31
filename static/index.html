@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Système d'Orientation des Patients</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+<body>
+<div id="app" class="app-layout">
+  <!-- Colonne 1 : Sidebar de navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>Système d'Orientation</h1>
+      <p>Accueil clinique</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button
+        class="nav-tab"
+        :class="{ active: ongletCourant === 'evaluation' }"
+        @click="ongletCourant = 'evaluation'">
+        Évaluation Interactive
+      </button>
+      <button
+        class="nav-tab"
+        :class="{ active: ongletCourant === 'comparaison' }"
+        @click="ongletCourant = 'comparaison'">
+        Comparaison A/B
+      </button>
+      <button
+        class="nav-tab"
+        :class="{ active: ongletCourant === 'benchmark' }"
+        @click="chargerBenchmark">
+        Benchmark des 11 cas
+      </button>
+    </nav>
+  </aside>
+
+  <!-- Colonne 2 : Contenu principal (Full Width) -->
+  <main class="main-content">
+    <!-- ONGLET 1 : ÉVALUATION INTERACTIVE -->
+    <div v-show="ongletCourant === 'evaluation'">
+      <!-- Sélecteur rapide de cas -->
+      <div class="cases-bar" v-if="casDisponibles.length">
+        <span class="cases-label">Cas de test :</span>
+        <div class="pills">
+          <button
+            v-for="(cas, idx) in casDisponibles"
+            :key="idx"
+            class="pill"
+            :class="{ active: selectedCasIdx === idx }"
+            @click="chargerCas(cas, idx)">
+            C{{ idx + 1 }}
+          </button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Formulaire d'observation -->
+        <div class="box">
+          <div class="box-h">
+            <span>Observations cliniques</span>
+            <span style="font-weight: normal; font-size: 12px;">Oui / Non / Inconnue</span>
+          </div>
+          <div class="box-b">
+            <div class="grp-label">1. Signes généraux & temporels</div>
+            <div class="fields">
+              <div class="field">
+                <label>Âge</label>
+                <input v-model.number="form.age" type="number" min="0" max="120" placeholder="Inconnu" />
+              </div>
+              <div class="field">
+                <label>Température</label>
+                <select v-model="form.temperature">
+                  <option value="inconnu">Inconnue</option>
+                  <option value="normale">Normale</option>
+                  <option value="elevee">Élevée</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Durée des symptômes</label>
+                <select v-model="form.duree_symptomes">
+                  <option value="inconnu">Inconnue</option>
+                  <option value="courte">Courte</option>
+                  <option value="longue">Longue</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grp-label crit">2. Signes d'alerte vitale (Critiques)</div>
+            <div class="fields">
+              <div class="field">
+                <label>Perte de conscience</label>
+                <select v-model="form.perte_conscience">
+                  <option value="inconnu">Inconnue</option>
+                  <option value="non">Non</option>
+                  <option value="oui">Oui</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Saignement important</label>
+                <select v-model="form.saignement_important">
+                  <option value="inconnu">Inconnue</option>
+                  <option value="non">Non</option>
+                  <option value="oui">Oui</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Détresse respiratoire</label>
+                <select v-model="form.difficulte_respiratoire">
+                  <option value="inconnu">Inconnue</option>
+                  <option value="non">Non</option>
+                  <option value="oui">Oui</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Douleur thoracique</label>
+                <select v-model="form.douleur_thoracique">
+                  <option value="inconnu">Inconnue</option>
+                  <option value="non">Non</option>
+                  <option value="oui">Oui</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grp-label">3. Signes fonctionnels & déclaratifs</div>
+            <div class="fields">
+              <div class="field">
+                <label>Douleur</label>
+                <select v-model="form.douleur">
+                  <option value="inconnu">Inconnue</option>
+                  <option value="faible">Faible</option>
+                  <option value="moyen">Moyenne</option>
+                  <option value="fort">Forte</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Fatigue importante</label>
+                <select v-model="form.fatigue_importante">
+                  <option value="inconnu">Inconnue</option>
+                  <option value="non">Non</option>
+                  <option value="oui">Oui</option>
+                </select>
+              </div>
+            </div>
+            <div class="field" style="margin-top: 10px;">
+              <label>Déclaration « Symptômes légers »</label>
+              <select v-model="form.symptomes_legers">
+                <option value="inconnu">Inconnue</option>
+                <option value="non">Non</option>
+                <option value="oui">Oui</option>
+              </select>
+            </div>
+
+            <div class="actions-bar">
+              <button class="btn-eval" @click="evaluer" :disabled="loading">
+                {{ loading ? 'Évaluation…' : 'Évaluer l\'orientation' }}
+              </button>
+              <button class="btn-clear" @click="reinitialiser" :disabled="loading">
+                Effacer
+              </button>
+            </div>
+
+            <div class="free-text">
+              <div class="grp-label">Optionnel : description libre</div>
+              <textarea v-model="descriptionLibre" rows="3" placeholder="Ex. : personne de 78 ans, très essoufflée depuis ce matin…"></textarea>
+              <button class="btn-clear" @click="extraireFaits" :disabled="extractionLoading">
+                {{ extractionLoading ? 'Extraction…' : 'Extraire les faits avec le LLM' }}
+              </button>
+              <small>Le LLM extrait uniquement des faits. La décision finale reste calculée localement par les règles et le modèle probabiliste.</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Décision & explications -->
+        <div class="box">
+          <div class="box-h">
+            <span>Décision & Explication</span>
+          </div>
+          <div class="box-b">
+            <div v-if="!resultat && !loading" class="empty">
+              <svg class="empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+              <p>Sélectionnez un cas de test ou renseignez les observations pour évaluer.</p>
+            </div>
+
+            <div v-if="loading" class="empty">
+              <p>Calcul en cours…</p>
+            </div>
+
+            <div v-if="resultat">
+              <!-- Verdict sobre avec icône ciblée -->
+              <div class="verdict" :class="getVerdictClass(resultat.orientation)">
+                <div class="verdict-header">
+                  <div class="verdict-icon">
+                    <svg v-if="resultat.orientation.includes('URGENTE')" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <svg v-else-if="resultat.orientation.includes('PRIORITAIRE')" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <svg v-else-if="resultat.orientation.includes('NORMALE') || resultat.orientation.includes('SURVEILLANCE')" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  </div>
+                  <div class="v-title">{{ resultat.orientation }}</div>
+                </div>
+              </div>
+
+              <!-- État de certitude associé au verdict -->
+              <div class="epistemic-state" v-if="resultat.etat_incertitude">
+                <span class="epistemic-badge" :class="'epistemic-' + resultat.etat_incertitude.type">
+                  {{ resultat.etat_incertitude.label }}
+                </span>
+                <span>{{ resultat.etat_incertitude.description }}</span>
+              </div>
+
+              <!-- Jauge probabiliste (Cadran SVG) -->
+              <div class="gauge-wrap" v-if="resultat.probabilite_urgence !== null">
+                <div class="gauge-txt">
+                  <span>Risque estimé d'urgence : {{ (resultat.probabilite_urgence * 100).toFixed(1) }} %</span>
+                </div>
+                <svg class="gauge-svg-dial" viewBox="0 0 240 130" aria-label="Cadran du risque estimé">
+                  <!-- Zone Surveillance (0 à 30%) -->
+                  <path d="M 35 115 A 85 85 0 0 1 70.04 46.23" fill="none" stroke="#94a3b8" stroke-width="18" stroke-linecap="round" />
+                  <!-- Zone Normale (30% à 50%) -->
+                  <path d="M 70.04 46.23 A 85 85 0 0 1 120 30" fill="none" stroke="#60a5fa" stroke-width="18" />
+                  <!-- Zone Prioritaire (50% à 75%) -->
+                  <path d="M 120 30 A 85 85 0 0 1 180.10 54.90" fill="none" stroke="#fbbf24" stroke-width="18" />
+                  <!-- Zone Urgente (75% à 100%) -->
+                  <path d="M 180.10 54.90 A 85 85 0 0 1 205 115" fill="none" stroke="#f87171" stroke-width="18" stroke-linecap="round" />
+
+                  <!-- Séparateurs nets -->
+                  <line x1="62.5" y1="36" x2="77.5" y2="56.5" stroke="var(--subtle)" stroke-width="3" />
+                  <line x1="120" y1="19" x2="120" y2="41" stroke="var(--subtle)" stroke-width="3" />
+                  <line x1="188.8" y1="46" x2="171.4" y2="63.8" stroke="var(--subtle)" stroke-width="3" />
+
+                  <!-- Aiguille dynamique fluide -->
+                  <g class="gauge-needle-group" :style="{ transform: 'rotate(' + (-90 + Math.min(Math.max(resultat.probabilite_urgence * 180, 0), 180)) + 'deg)', transformOrigin: '120px 115px' }">
+                    <line x1="120" y1="115" x2="120" y2="34" stroke="var(--text)" stroke-width="3.5" stroke-linecap="round" />
+                    <polygon points="120,24 115,36 125,36" fill="var(--text)" />
+                  </g>
+
+                  <!-- Pivot central -->
+                  <circle cx="120" cy="115" r="7.5" fill="var(--text)" stroke="var(--subtle)" stroke-width="2.5" />
+                </svg>
+                <div class="gauge-lbls">
+                  <span><b>0–30 %</b><br>Surveillance</span>
+                  <span><b>30–50 %</b><br>Normale</span>
+                  <span><b>50–75 %</b><br>Prioritaire</span>
+                  <span><b>75–100 %</b><br>Urgente</span>
+                </div>
+              </div>
+
+              <!-- Justification lisible -->
+              <div class="info justification">
+                <div class="info-h">Pourquoi cette décision ?</div>
+                <ul class="justification-list">
+                  <li v-for="(etape, i) in resultat.justification_etapes" :key="i">{{ etape }}</li>
+                </ul>
+              </div>
+
+              <!-- Traces -->
+              <div class="traces">
+                <div class="trace-box trace-m1">
+                  <div class="trace-h">M1 · Raisonnement par règles</div>
+                  <div v-if="resultat.regle_activee" class="rule-track">
+                    <span class="rule-node">M1</span>
+                    <span class="rule-line"></span>
+                    <span class="rule-node active">{{ resultat.regle_activee }}</span>
+                  </div>
+                  <div v-else class="trace-empty">Aucune règle activée</div>
+                </div>
+
+                <div class="trace-box trace-m2">
+                  <div class="trace-h">M2 · Score probabiliste</div>
+                  <div v-for="(c, i) in resultat.contributions_probabilistes" :key="i" class="c-item" :class="c.active ? 'on' : 'off'">
+                    <span>{{ c.symptome }}</span>
+                    <span>{{ c.active ? 'Observé' : 'Absent' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONGLET 2 : COMPARAISON LIVE CONFIG A VS CONFIG B -->
+    <div v-show="ongletCourant === 'comparaison'">
+      <div class="box">
+        <div class="box-h">
+          <span>A / B · Comparaison des raisonnements</span>
+        </div>
+        <div class="box-b">
+          <div v-if="!resultat" class="empty">
+            <p>Veuillez d'abord évaluer un cas dans l'onglet « Évaluation Interactive ».</p>
+          </div>
+          <div v-else>
+            <div class="comparison-summary">
+              <span class="comparison-kicker">Même cas, deux méthodes</span>
+              <strong>{{ resultat.config_a.orientation === resultat.config_b.orientation ? 'Les deux méthodes convergent' : 'Les méthodes aboutissent à des orientations différentes' }}</strong>
+            </div>
+            <div class="comparison-grid">
+              <!-- Config A : Règles seules -->
+              <div class="config-card config-a">
+                <div class="config-title"><span class="config-letter">A</span> Règles seules <small>M1</small></div>
+                <div class="verdict" :class="getVerdictClass(resultat.config_a.orientation)">
+                  <div class="v-title">{{ resultat.config_a.orientation }}</div>
+                </div>
+                <div class="info">
+                  <div class="info-h">Décision par règles</div>
+                  <p>{{ resultat.config_a.justification }}</p>
+                </div>
+              </div>
+
+              <!-- Config B : Hybride -->
+              <div class="config-card config-b">
+                <div class="config-title"><span class="config-letter">B</span> Hybride <small>M1 + M2</small></div>
+                <div class="verdict" :class="getVerdictClass(resultat.config_b.orientation)">
+                  <div class="v-title">{{ resultat.config_b.orientation }}</div>
+                </div>
+                <div class="info">
+                  <div class="info-h">Décision par fusion</div>
+                  <p>{{ resultat.config_b.justification }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONGLET 3 : BENCHMARK GLOBAL DES 11 CAS -->
+    <div v-show="ongletCourant === 'benchmark'">
+      <div v-if="benchLoading" class="empty">
+        <p>Calcul du benchmark sur l'ensemble des cas de test…</p>
+      </div>
+
+      <div v-if="benchmarkData">
+        <!-- Synthèse des métriques -->
+        <div class="benchmark-summary">
+          <div class="stat-card">
+            <div class="info-h">Exactitude Config A (Règles)</div>
+            <div class="stat-num">{{ benchmarkData.synthese.exactitude_config_a }} %</div>
+            <p style="font-size: 12.5px; color: var(--light); margin-top: 2px;">{{ benchmarkData.synthese.reussites_config_a }}/{{ benchmarkData.total_cas }} conformes ({{ benchmarkData.synthese.temps_moyen_a_ms }} ms/cas)</p>
+          </div>
+          <div class="stat-card">
+            <div class="info-h">Exactitude Config B (Hybride)</div>
+            <div class="stat-num">{{ benchmarkData.synthese.exactitude_config_b }} %</div>
+            <p style="font-size: 12.5px; color: var(--light); margin-top: 2px;">{{ benchmarkData.synthese.reussites_config_b }}/{{ benchmarkData.total_cas }} conformes ({{ benchmarkData.synthese.temps_moyen_b_ms }} ms/cas)</p>
+          </div>
+        </div>
+
+        <!-- Tableau détaillé -->
+        <div class="box">
+          <div class="box-h">Tableau Comparatif des 11 Cas de Test</div>
+          <div class="box-b" style="padding: 0; overflow-x: auto;">
+            <table class="bench-table">
+              <thead>
+                <tr>
+                  <th>Cas</th>
+                  <th>Attendu</th>
+                  <th>Config A (Règles)</th>
+                  <th>Config B (Hybride)</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, idx) in benchmarkData.details" :key="idx">
+                  <td><strong>{{ row.nom }}</strong></td>
+                  <td>{{ row.attendu }}</td>
+                  <td>
+                    <span>{{ row.config_a.orientation }}</span>
+                    <span v-if="!row.config_a.concorde" class="tag-diff" style="margin-left: 6px;">Écart</span>
+                  </td>
+                  <td>
+                    <span>{{ row.config_b.orientation }}</span>
+                    <span v-if="!row.config_b.concorde" class="tag-diff" style="margin-left: 6px;">Écart</span>
+                  </td>
+                  <td>
+                    <span v-if="row.config_a.concorde && row.config_b.concorde" class="tag-ok">Validé</span>
+                    <span v-else class="tag-diff">Cas Limite</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>

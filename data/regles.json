@@ -1,0 +1,61 @@
+[
+  {
+    "id": "R1",
+    "priorite": 100,
+    "conditions": [{"champ": "perte_conscience", "operateur": "egal", "valeur": "oui"}],
+    "orientation": "ORIENTATION_URGENTE",
+    "confiance": "Très élevée",
+    "critique": true,
+    "description": "perte_conscience = oui"
+  },
+  {
+    "id": "R5",
+    "priorite": 95,
+    "conditions": [{"champ": "saignement_important", "operateur": "egal", "valeur": "oui"}],
+    "orientation": "ORIENTATION_URGENTE",
+    "confiance": "Très élevée",
+    "critique": true,
+    "description": "saignement_important = oui"
+  },
+  {
+    "id": "R2",
+    "priorite": 90,
+    "conditions": [
+      {"champ": "douleur_thoracique", "operateur": "egal", "valeur": "oui"},
+      {"champ": "difficulte_respiratoire", "operateur": "egal", "valeur": "oui"}
+    ],
+    "orientation": "ORIENTATION_URGENTE",
+    "confiance": "Très élevée",
+    "critique": true,
+    "description": "douleur_thoracique = oui ET difficulte_respiratoire = oui"
+  },
+  {
+    "id": "R3",
+    "priorite": 50,
+    "conditions": [
+      {"champ": "temperature", "operateur": "egal", "valeur": "elevee"},
+      {"champ": "duree_symptomes", "operateur": "egal", "valeur": "longue"}
+    ],
+    "orientation": "CONSULTATION_PRIORITAIRE",
+    "confiance": "Moyenne",
+    "critique": false,
+    "description": "temperature = elevee ET duree_symptomes = longue"
+  },
+  {
+    "id": "R4",
+    "priorite": 10,
+    "conditions": [
+      {"champ": "douleur", "operateur": "egal", "valeur": "faible"},
+      {"champ": "temperature", "operateur": "egal", "valeur": "normale"},
+      {"champ": "duree_symptomes", "operateur": "egal", "valeur": "courte"},
+      {"champ": "difficulte_respiratoire", "operateur": "egal", "valeur": "non"},
+      {"champ": "douleur_thoracique", "operateur": "egal", "valeur": "non"},
+      {"champ": "perte_conscience", "operateur": "egal", "valeur": "non"},
+      {"champ": "saignement_important", "operateur": "egal", "valeur": "non"}
+    ],
+    "orientation": "SURVEILLANCE",
+    "confiance": "Faible (prudente)",
+    "critique": false,
+    "description": "tableau bénin complet : douleur faible, température normale, durée courte et aucun signe critique"
+  }
+]
